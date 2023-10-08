@@ -6,6 +6,8 @@
 
 echo "Current work directory $WORKING_DIR"
 
+CPU=x86_64
+
 X264_PREFIX="/usr/local/x264"
 export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$X264_PREFIX/lib/pkgconfig"
 
@@ -47,8 +49,8 @@ function build_windows {
     PREFIX="--prefix=/usr/local/ffmpeg"
 
     COMMON_ARGS="--enable-x86asm --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --enable-avresample --enable-gpl --enable-libx264 --enable-optimizations"
-    ARCH_ARGS="--arch=x86_64"
-    TOOLCHAIN_ARGS="--toolchain=msvc"
+    ARCH_ARGS="--arch=$CPU"
+    TOOLCHAIN_ARGS="--toolchain=msvc --cc='cl.exe -wd4090;4828;4010;4101;4028;4267;492' --cxx='cl.exe -wd4090;4828;4010;4101;4028;4267;492'"
 
     # 其他参数：
     #  --disable-bzlib --disable-libopenjpeg --disable-iconv --disable-zlib
@@ -62,7 +64,7 @@ function build_windows {
     cd $WORKING_DIR/$SOURCE &&
         git stash &&
         git checkout $BRANCH &&
-        CC="cl.exe -wd4828;4101;4028;4267;492" CXX="cl.exe -wd4828;4101;4028;4267;492" ./configure $COMMON_ARGS $PREFIX $TOOLCHAIN_ARGS $ARCH_ARGS $EXTRA_ARGS &&
+        ./configure $COMMON_ARGS $PREFIX $TOOLCHAIN_ARGS $ARCH_ARGS $EXTRA_ARGS &&
         make clean &&
         make -j 4 &&
         make install &&
@@ -70,6 +72,8 @@ function build_windows {
     cd $WORKING_DIR
 }
 
+
+CPU=x86_64
 # install_deps 0
 # exit 0
 # prepare_build
