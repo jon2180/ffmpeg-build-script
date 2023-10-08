@@ -50,9 +50,10 @@ function build_windows {
 
     COMMON_ARGS="--enable-x86asm --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --enable-avresample --enable-gpl --enable-libx264 --enable-optimizations"
     ARCH_ARGS="--arch=$CPU"
-    TOOLCHAIN_ARGS="--toolchain=msvc --cc='cl.exe -wd4090;4828;4010;4101;4028;4267;492' --cxx='cl.exe -wd4090;4828;4010;4101;4028;4267;492'"
+    TOOLCHAIN_ARGS="--toolchain=msvc"
 
     # 其他参数：
+    #  --cc='cl.exe -wd4090;4828;4010;4101;4028;4267;492' --cxx='cl.exe -wd4090;4828;4010;4101;4028;4267;492'
     #  --disable-bzlib --disable-libopenjpeg --disable-iconv --disable-zlib
     # EXTRA_ARGS="--extra-cflags=-l/usr/local/x264/include --extra-ldflags=-L/usr/loca/x264/lib"
 
