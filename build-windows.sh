@@ -43,10 +43,15 @@ function prepare_build {
 
 function build_windows {
     PREFIX="--prefix=/usr/local/ffmpeg"
-    COMMON_ARGS="--enable-asm --enable-yasm --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --disable-bzlib --disable-libopenjpeg --disable-iconv --disable-zlib --enable-avresample --enable-gpl --enable-libx264 --enable-optimizations"
+    
+    COMMON_ARGS="--enable-x86asm --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --enable-avresample --enable-gpl --enable-libx264 --enable-optimizations"
     ARCH_ARGS="--arch=x86_64"
     TOOLCHAIN_ARGS="--toolchain=msvc --cc=cl.exe -wd4828;4101;4028;4267;492 --cxx=cl.exe -wd4828;4101;4028;4267;492"
-    EXTRA_ARGS="--extra-cflags=-l/usr/local/x264/include --extra-ldflags=-L/usr/loca/x264/lib"
+    
+    # 其他参数：
+    #  --disable-bzlib --disable-libopenjpeg --disable-iconv --disable-zlib
+    # EXTRA_ARGS="--extra-cflags=-l/usr/local/x264/include --extra-ldflags=-L/usr/loca/x264/lib"
+
     echo "Compiling ffmpeg for windows_$CPU"
     echo "pkgconfig $PKG_CONFIG_PATH"
     # 调用同级目录下的configure文件
@@ -63,8 +68,8 @@ function build_windows {
     cd $WORKING_DIR
 }
 
-install_deps 0
+# install_deps 0
 # exit 0
-prepare_build
+# prepare_build
 # exit 0
 build_windows
