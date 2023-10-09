@@ -6,3 +6,4 @@ FFmpeg-*
 .DS_Store
 
 build/
+output/

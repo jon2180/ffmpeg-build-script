@@ -1,26 +1,25 @@
 #!/bin/sh
 
-# directories
-FF_VERSION="4.3.1"
-#FF_VERSION="snapshot-git"
-if [[ $FFMPEG_VERSION != "" ]]; then
-  FF_VERSION=$FFMPEG_VERSION
-fi
-SOURCE="ffmpeg-$FF_VERSION"
-FAT="FFmpeg-iOS"
+. ./common.sh
 
-SCRATCH="scratch"
+# SOURCE="ffmpeg"
+
+OUTPUT_DIR="$WORKING_DIR/output/iOS"
+
+FAT="$OUTPUT_DIR/ffmpeg" 
+
+SCRATCH="$OUTPUT_DIR/scratch"
 # must be an absolute path
-THIN=`pwd`/"thin"
+THIN=$OUTPUT_DIR/thin
 
 # absolute path to x264 library
-#X264=`pwd`/fat-x264
+X264=$OUTPUT_DIR/x264-iOS
 
 #FDK_AAC=`pwd`/../fdk-aac-build-script-for-iOS/fdk-aac-ios
 
 CONFIGURE_FLAGS="--enable-cross-compile --disable-debug --disable-programs \
-                 --disable-doc --enable-pic"
-
+                 --disable-doc --enable-pic --disable-audiotoolbox"
+#  --enable-shared --disable-static
 if [ "$X264" ]
 then
 	CONFIGURE_FLAGS="$CONFIGURE_FLAGS --enable-gpl --enable-libx264"
@@ -34,12 +33,13 @@ fi
 # avresample
 #CONFIGURE_FLAGS="$CONFIGURE_FLAGS --enable-avresample"
 
-ARCHS="arm64 armv7 x86_64 i386"
+ARCHS="arm64"
+# ARCHS="arm64 armv7 x86_64 i386"
 
 COMPILE="y"
 LIPO="y"
 
-DEPLOYMENT_TARGET="8.0"
+DEPLOYMENT_TARGET="13.0"
 
 if [ "$*" ]
 then
@@ -80,11 +80,24 @@ then
 			|| exit 1
 	fi
 
-	if [ ! -r $SOURCE ]
+	# if [ ! -r $SOURCE ]
+	# then
+	# 	echo 'FFmpeg source not found. Trying to download...'
+	# 	curl http://www.ffmpeg.org/releases/$SOURCE.tar.bz2 | tar xj \
+	# 		|| exit 1
+	# fi
+	if [ -r $WORKING_DIR/$SOURCE/.git ]
 	then
-		echo 'FFmpeg source not found. Trying to download...'
-		curl http://www.ffmpeg.org/releases/$SOURCE.tar.bz2 | tar xj \
-			|| exit 1
+		cd $WORKING_DIR/$SOURCE
+		git stash
+		git checkout $BRANCH
+		cd $WORKING_DIR
+	fi
+
+	# 修正
+	if [ -r $WORKING_DIR/$SOURCE/config.h ]
+	then
+		rm -f $WORKING_DIR/$SOURCE/config.h
 	fi
 
 	CWD=`pwd`
@@ -132,6 +145,11 @@ then
 			LDFLAGS="$LDFLAGS -L$FDK_AAC/lib"
 		fi
 
+		if [ -r "$THIN/$ARCH" ]
+		then
+			rm -rf "$THIN/$ARCH"
+		fi
+
 		TMPDIR=${TMPDIR/%\/} $CWD/$SOURCE/configure \
 		    --target-os=darwin \
 		    --arch=$ARCH \
@@ -151,7 +169,12 @@ fi
 if [ "$LIPO" ]
 then
 	echo "building fat binaries..."
+	if [ -r "$FAT" ]
+	then
+		rm -rf "$FAT"
+	fi
 	mkdir -p $FAT/lib
+
 	set - $ARCHS
 	CWD=`pwd`
 	cd $THIN/$1/lib

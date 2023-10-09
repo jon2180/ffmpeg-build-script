@@ -48,8 +48,8 @@ function prepare_build {
 function build_windows {
     PREFIX="--prefix=/usr/local/ffmpeg"
 
-    COMMON_ARGS="--enable-x86asm --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --enable-avresample --enable-gpl --enable-libx264 --enable-optimizations"
-    ARCH_ARGS="--arch=$CPU"
+    # COMMON_ARGS="--enable-x86asm --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --enable-avresample --enable-gpl --enable-libx264 --enable-optimizations"
+    ARCH_ARGS="--arch=$CPU --enable-x86asm "
     TOOLCHAIN_ARGS="--toolchain=msvc"
 
     # 其他参数：
