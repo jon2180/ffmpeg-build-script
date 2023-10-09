@@ -7,3 +7,4 @@ FFmpeg-*
 
 build/
 output/
+cache
