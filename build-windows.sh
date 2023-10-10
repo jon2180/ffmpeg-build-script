@@ -56,7 +56,7 @@ function build_windows {
     #  --cc='cl.exe -wd4090;4828;4010;4101;4028;4267;492' --cxx='cl.exe -wd4090;4828;4010;4101;4028;4267;492'
     #  --disable-bzlib --disable-libopenjpeg --disable-iconv --disable-zlib
     # EXTRA_ARGS="--extra-cflags=-l/usr/local/x264/include --extra-ldflags=-L/usr/loca/x264/lib"
-
+    COMMON_ARGS="$COMMON_ARGS --enable-gpl --enable-libx264"
     echo "Compiling ffmpeg for windows_$CPU"
     echo "pkgconfig $PKG_CONFIG_PATH"
     # 调用同级目录下的configure文件

@@ -11,4 +11,4 @@ if [[ $FFMPEG_VERSION != "" ]]; then
   FF_VERSION=$FFMPEG_VERSION
 fi
 
-COMMON_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --enable-avresample --enable-gpl --enable-libx264 --enable-optimizations"
+COMMON_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --enable-avresample --enable-optimizations"
