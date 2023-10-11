@@ -14,6 +14,8 @@ export ANDROID_NDK=/Users/feishu/Library/Android/sdk/ndk/21.4.7075529
 export NDK=$ANDROID_NDK
 
 function build_android {
+    COMMON_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static"
+
     #x264的头文件地址
     INC=""
 
@@ -52,6 +54,38 @@ function build_android {
         LIB="$LIB -L$X264_OUTPUT/lib"
     fi
 
+    FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
+    FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/android-$CPU"
+    FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/android-$CPU"
+
+    if [ -r $FDK_AAC_SOURCE ]; then
+        echo "Compiling fdk-aac for $CPU"
+
+        mkdir -p $FDK_AAC_CACHE
+        cd $FDK_AAC_CACHE
+
+        rm -rf $FDK_AAC_OUTPUT
+
+        CC="$CC" CXX="$CC" CPP="$CC -E" AS="$AS" CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" CPPFLAGS="$CFLAGS" $FDK_AAC_SOURCE/configure \
+            --enable-shared --disable-static --with-pic=yes \
+            --prefix="$FDK_AAC_OUTPUT" \
+            --host=$HOST \
+            --cross-prefix=$CROSS_PREFIX \
+            --sysroot=$SYSROOT \
+            --debug
+            CC=$CC \
+            CXX=$CXX
+
+        make clean
+        make -j8 install
+
+        echo ">>>>>>>> fdk-aac 编译完成"
+
+        COMMON_ARGS="$COMMON_ARGS --enable-nonfree --enable-libfdk-aac"
+        INC="$INC -I$FDK_AAC_OUTPUT/include"
+        LIB="$LIB -I$FDK_AAC_OUTPUT/lib"
+    fi
+
     FFMPEG_SOURCE="$WORKING_DIR/ffmpeg"
     FFMPEG_OUTPUT="$WORKING_DIR/output/ffmpeg/android-$CPU"
     FFMPEG_CACHE="$WORKING_DIR/cache/ffmpeg/android-$CPU"
@@ -73,6 +107,7 @@ function build_android {
         rm -rf $FFMPEG_OUTPUT
 
         $FFMPEG_SOURCE/configure $COMMON_ARGS \
+            --enable-debug --disable-optimizations --disable-asm --disable-stripping 
             --prefix=$FFMPEG_OUTPUT \
             --enable-jni \
             --cross-prefix=$CROSS_PREFIX \
