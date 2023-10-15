@@ -6,10 +6,15 @@
 
 echo "Current work directory $WORKING_DIR"
 
+set -x
+set -e
+
 CPU=x86_64
 
 X264_PREFIX="/usr/local/x264"
 export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$X264_PREFIX/lib/pkgconfig"
+
+COMMON_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static"
 
 function install_deps {
     # $1 1 执行安装 0 跳过
@@ -29,7 +34,7 @@ function prepare_build {
 
     # 会编译前 clean
     cd $WORKING_DIR/x264 &&
-        CC=cl ./configure --prefix=$X264_PREFIX --enable-shared &&
+        CC=cl ./configure --prefix=$X264_PREFIX --enable-shared --enable-debug &&
         make clean &&
         make -j 4 &&
         make install
@@ -62,21 +67,40 @@ function build_windows {
     # 调用同级目录下的configure文件
     # 指定输出目录
     # 各种配置项，想详细了解的可以打开configure文件找到Help options:查看
+
+    COMMON_ARGS="$COMMON_ARGS --enable-debug --disable-optimizations --disable-asm --disable-stripping"
+
     cd $WORKING_DIR/$SOURCE &&
         git stash &&
         git checkout $BRANCH &&
-        ./configure $COMMON_ARGS $PREFIX $TOOLCHAIN_ARGS $ARCH_ARGS $EXTRA_ARGS &&
+        ./configure \
+            --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static \
+            --enable-debug --disable-optimizations --disable-asm --disable-x86asm --disable-stripping \
+            --enable-gpl --enable-libx264 \
+            --prefix=/usr/local/ffmpeg \
+            --arch=$CPU \
+            --toolchain=msvc &&
         make clean &&
         make -j 4 &&
         make install &&
         echo "The compilation of ffmpeg for windows_$CPU is completed"
+
+    $COMMON_ARGS $PREFIX $TOOLCHAIN_ARGS $ARCH_ARGS $EXTRA_ARGS
+
+    # cd $WORKING_DIR/$SOURCE &&
+    #     git stash &&
+    #     git checkout $BRANCH &&
+    #     ./configure $COMMON_ARGS $PREFIX $TOOLCHAIN_ARGS $ARCH_ARGS $EXTRA_ARGS &&
+    #     make clean &&
+    #     make -j 4 &&
+    #     make install &&
+    #     echo "The compilation of ffmpeg for windows_$CPU is completed"
     cd $WORKING_DIR
 }
-
 
 CPU=x86_64
 # install_deps 0
 # exit 0
-# prepare_build
+prepare_build
 # exit 0
 build_windows
