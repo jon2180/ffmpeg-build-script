@@ -83,9 +83,9 @@ function build_ffmpeg {
         echo ">>>>>>编译完成 x264!<<<<<<"
     fi
 
-    FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
-    FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/${PLATFORM}-$CPU"
-    FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/${PLATFORM}-$CPU"
+    # FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
+    # FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/${PLATFORM}-$CPU"
+    # FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/${PLATFORM}-$CPU"
 
     # if [ -n $FDK_AAC_SOURCE -a -r $FDK_AAC_SOURCE ]; then
     #     echo "Compiling fdk-aac for $CPU"
@@ -152,20 +152,26 @@ function build_ffmpeg {
 
     MERGED_LIB_OUTPUT="$WORKING_DIR/output/dist/${PLATFORM}-$CPU"
 
-    if [ "$MERGED_LIB_OUTPUT" ]; then
+    if [ -n "$MERGED_LIB_OUTPUT" ]; then
 
         rm -rf $MERGED_LIB_OUTPUT
         mkdir -p $MERGED_LIB_OUTPUT
-        cp -r "$FFMPEG_OUTPUT/*" "$MERGED_LIB_OUTPUT/"
-
-        if [ -r $X264_OUTPUT ]; then
-            cp -r "$X264_OUTPUT/*" "$MERGED_LIB_OUTPUT/"
+        if [ -n $FFMPEG_OUTPUT -a -r $FFMPEG_OUTPUT ]; then
+            cp -r ${FFMPEG_OUTPUT}/* "$MERGED_LIB_OUTPUT/"
         fi
 
-        # if [ -r $FDK_AAC_OUTPUT ]; then
-        #     cp -r "$FDK_AAC_OUTPUT/*" "$MERGED_LIB_OUTPUT/"
+        if [ -n $X264_OUTPUT -a -r $X264_OUTPUT ]; then
+            cp -r ${X264_OUTPUT}/* "$MERGED_LIB_OUTPUT/"
+        fi
+
+        # if [ -n $FDK_AAC_OUTPUT -a -r $FDK_AAC_OUTPUT ]; then
+        #     cp -r ${FDK_AAC_OUTPUT}/* "$MERGED_LIB_OUTPUT/"
         # fi
 
+        libs=$(find $MERGED_LIB_OUTPUT/bin/ -name "*.lib")
+        for n in $libs; do
+            mv $n $MERGED_LIB_OUTPUT/lib/
+        done
     fi
 }
 
