@@ -162,9 +162,9 @@ function build_ffmpeg {
             cp -r "$X264_OUTPUT/*" "$MERGED_LIB_OUTPUT/"
         fi
 
-        if [ -r $FDK_AAC_OUTPUT ]; then
-            cp -r "$FDK_AAC_OUTPUT/*" "$MERGED_LIB_OUTPUT/"
-        fi
+        # if [ -r $FDK_AAC_OUTPUT ]; then
+        #     cp -r "$FDK_AAC_OUTPUT/*" "$MERGED_LIB_OUTPUT/"
+        # fi
 
     fi
 }
