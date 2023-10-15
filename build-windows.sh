@@ -1,106 +1,108 @@
 #!/bin/bash
 
-# 安装好 msys2 后，把 /usr/bin/link.exe 改名，避免和 msvc 冲突，我们使用 msvc 编译工具链
+./build-desktop.sh windows x86_64
 
-. ./common.sh
+# # 安装好 msys2 后，把 /usr/bin/link.exe 改名，避免和 msvc 冲突，我们使用 msvc 编译工具链
 
-echo "Current work directory $WORKING_DIR"
+# . ./common.sh
 
-set -x
-set -e
+# echo "Current work directory $WORKING_DIR"
 
-CPU=x86_64
+# set -x
+# set -e
 
-X264_PREFIX="/usr/local/x264"
-export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$X264_PREFIX/lib/pkgconfig"
+# CPU=x86_64
 
-COMMON_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static"
+# X264_PREFIX="/usr/local/x264"
+# export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$X264_PREFIX/lib/pkgconfig"
 
-function install_deps {
-    # $1 1 执行安装 0 跳过
-    echo "Installing dependencies"
-    if [ $1 -gt 0 ]; then
-        sed -i "s#https\?://mirror.msys2.org/#https://mirrors.tuna.tsinghua.edu.cn/msys2/#g" /etc/pacman.d/mirrorlist*
-        pacman -Sy
-        pacman -S --needed filesystem msys2-runtime bash libreadline libiconv libarchive libgpgme libcurl pacman ncurses libintl
-        pacman -S -y diffutils make pkg-config automake autoconf libtool yasm nasm
-        # pacman -S diffutils make pkg-config automake autoconf libtool yasm nasm gcc
-    fi
-    echo "Finished installing dependencies"
-}
+# COMMON_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static"
 
-function prepare_build {
-    echo "Building add installing libx264"
+# function install_deps {
+#     # $1 1 执行安装 0 跳过
+#     echo "Installing dependencies"
+#     if [ $1 -gt 0 ]; then
+#         sed -i "s#https\?://mirror.msys2.org/#https://mirrors.tuna.tsinghua.edu.cn/msys2/#g" /etc/pacman.d/mirrorlist*
+#         pacman -Sy
+#         pacman -S --needed filesystem msys2-runtime bash libreadline libiconv libarchive libgpgme libcurl pacman ncurses libintl
+#         pacman -S -y diffutils make pkg-config automake autoconf libtool yasm nasm
+#         # pacman -S diffutils make pkg-config automake autoconf libtool yasm nasm gcc
+#     fi
+#     echo "Finished installing dependencies"
+# }
 
-    # 会编译前 clean
-    cd $WORKING_DIR/x264 &&
-        CC=cl ./configure --prefix=$X264_PREFIX --enable-shared --enable-debug &&
-        make clean &&
-        make -j 4 &&
-        make install
+# function prepare_build {
+#     echo "Building add installing libx264"
 
-    # 修正
-    if [ -r $X264_PREFIX/lib/libx264.dll.lib ]; then
-        echo "mv $X264_PREFIX/lib/libx264.dll.lib $X264_PREFIX/lib/libx264.lib"
-        mv $X264_PREFIX/lib/libx264.dll.lib $X264_PREFIX/lib/libx264.lib
-    fi
+#     # 会编译前 clean
+#     cd $WORKING_DIR/x264 &&
+#         CC=cl ./configure --prefix=$X264_PREFIX --enable-shared --enable-debug &&
+#         make clean &&
+#         make -j 4 &&
+#         make install
 
-    cd $WORKING_DIR
+#     # 修正
+#     if [ -r $X264_PREFIX/lib/libx264.dll.lib ]; then
+#         echo "mv $X264_PREFIX/lib/libx264.dll.lib $X264_PREFIX/lib/libx264.lib"
+#         mv $X264_PREFIX/lib/libx264.dll.lib $X264_PREFIX/lib/libx264.lib
+#     fi
 
-    echo "Finished building add installing libx264"
-}
+#     cd $WORKING_DIR
 
-function build_windows {
-    PREFIX="--prefix=/usr/local/ffmpeg"
+#     echo "Finished building add installing libx264"
+# }
 
-    # COMMON_ARGS="--enable-x86asm --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --enable-avresample --enable-gpl --enable-libx264 --enable-optimizations"
-    ARCH_ARGS="--arch=$CPU --enable-x86asm "
-    TOOLCHAIN_ARGS="--toolchain=msvc"
+# function build_windows {
+#     PREFIX="--prefix=/usr/local/ffmpeg"
 
-    # 其他参数：
-    #  --cc='cl.exe -wd4090;4828;4010;4101;4028;4267;492' --cxx='cl.exe -wd4090;4828;4010;4101;4028;4267;492'
-    #  --disable-bzlib --disable-libopenjpeg --disable-iconv --disable-zlib
-    # EXTRA_ARGS="--extra-cflags=-l/usr/local/x264/include --extra-ldflags=-L/usr/loca/x264/lib"
-    COMMON_ARGS="$COMMON_ARGS --enable-gpl --enable-libx264"
-    echo "Compiling ffmpeg for windows_$CPU"
-    echo "pkgconfig $PKG_CONFIG_PATH"
-    # 调用同级目录下的configure文件
-    # 指定输出目录
-    # 各种配置项，想详细了解的可以打开configure文件找到Help options:查看
+#     # COMMON_ARGS="--enable-x86asm --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static --enable-avresample --enable-gpl --enable-libx264 --enable-optimizations"
+#     ARCH_ARGS="--arch=$CPU --enable-x86asm "
+#     TOOLCHAIN_ARGS="--toolchain=msvc"
 
-    COMMON_ARGS="$COMMON_ARGS --enable-debug --disable-optimizations --disable-asm --disable-stripping"
+#     # 其他参数：
+#     #  --cc='cl.exe -wd4090;4828;4010;4101;4028;4267;492' --cxx='cl.exe -wd4090;4828;4010;4101;4028;4267;492'
+#     #  --disable-bzlib --disable-libopenjpeg --disable-iconv --disable-zlib
+#     # EXTRA_ARGS="--extra-cflags=-l/usr/local/x264/include --extra-ldflags=-L/usr/loca/x264/lib"
+#     COMMON_ARGS="$COMMON_ARGS --enable-gpl --enable-libx264"
+#     echo "Compiling ffmpeg for windows_$CPU"
+#     echo "pkgconfig $PKG_CONFIG_PATH"
+#     # 调用同级目录下的configure文件
+#     # 指定输出目录
+#     # 各种配置项，想详细了解的可以打开configure文件找到Help options:查看
 
-    cd $WORKING_DIR/$SOURCE &&
-        git stash &&
-        git checkout $BRANCH &&
-        ./configure \
-            --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static \
-            --enable-debug --disable-optimizations --disable-asm --disable-x86asm --disable-stripping \
-            --enable-gpl --enable-libx264 \
-            --prefix=/usr/local/ffmpeg \
-            --arch=$CPU \
-            --toolchain=msvc &&
-        make clean &&
-        make -j 4 &&
-        make install &&
-        echo "The compilation of ffmpeg for windows_$CPU is completed"
+#     COMMON_ARGS="$COMMON_ARGS --enable-debug --disable-optimizations --disable-asm --disable-stripping"
 
-    $COMMON_ARGS $PREFIX $TOOLCHAIN_ARGS $ARCH_ARGS $EXTRA_ARGS
+#     cd $WORKING_DIR/$SOURCE &&
+#         git stash &&
+#         git checkout $BRANCH &&
+#         ./configure \
+#             --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static \
+#             --enable-debug --disable-optimizations --disable-asm --disable-x86asm --disable-stripping \
+#             --enable-gpl --enable-libx264 \
+#             --prefix=/usr/local/ffmpeg \
+#             --arch=$CPU \
+#             --toolchain=msvc &&
+#         make clean &&
+#         make -j 4 &&
+#         make install &&
+#         echo "The compilation of ffmpeg for windows_$CPU is completed"
 
-    # cd $WORKING_DIR/$SOURCE &&
-    #     git stash &&
-    #     git checkout $BRANCH &&
-    #     ./configure $COMMON_ARGS $PREFIX $TOOLCHAIN_ARGS $ARCH_ARGS $EXTRA_ARGS &&
-    #     make clean &&
-    #     make -j 4 &&
-    #     make install &&
-    #     echo "The compilation of ffmpeg for windows_$CPU is completed"
-    cd $WORKING_DIR
-}
+#     $COMMON_ARGS $PREFIX $TOOLCHAIN_ARGS $ARCH_ARGS $EXTRA_ARGS
 
-CPU=x86_64
-# install_deps 0
-# exit 0
-prepare_build
-# exit 0
-build_windows
+#     # cd $WORKING_DIR/$SOURCE &&
+#     #     git stash &&
+#     #     git checkout $BRANCH &&
+#     #     ./configure $COMMON_ARGS $PREFIX $TOOLCHAIN_ARGS $ARCH_ARGS $EXTRA_ARGS &&
+#     #     make clean &&
+#     #     make -j 4 &&
+#     #     make install &&
+#     #     echo "The compilation of ffmpeg for windows_$CPU is completed"
+#     cd $WORKING_DIR
+# }
+
+# CPU=x86_64
+# # install_deps 0
+# # exit 0
+# prepare_build
+# # exit 0
+# build_windows

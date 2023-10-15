@@ -1,81 +1,83 @@
 #!/bin/bash
 
-. ./common.sh
+./build-desktop.sh linux x86_64
 
-set -e
-set -x
+# . ./common.sh
 
-#x264的头文件地址
-INC=""
+# set -e
+# set -x
 
-#x264的静态库地址
-LIB=""
+# #x264的头文件地址
+# INC=""
 
-X264_SOURCE="$WORKING_DIR/x264"
-X264_OUTPUT="$WORKING_DIR/output/x264/linux$CPU"
-X264_CACHE="$WORKING_DIR/cache/x264/linux$CPU"
+# #x264的静态库地址
+# LIB=""
 
-FFMPEG_SOURCE="$WORKING_DIR/ffmpeg"
-FFMPEG_OUTPUT="$WORKING_DIR/output/ffmpeg/linux$CPU"
-FFMPEG_CACHE="$WORKING_DIR/cache/ffmpeg/linux$CPU"
+# X264_SOURCE="$WORKING_DIR/x264"
+# X264_OUTPUT="$WORKING_DIR/output/x264/linux$CPU"
+# X264_CACHE="$WORKING_DIR/cache/x264/linux$CPU"
 
-# $1 ENABLE_DEBUG
-function build_ffmpeg {
-    ENABLE_DEBUG=$1
+# FFMPEG_SOURCE="$WORKING_DIR/ffmpeg"
+# FFMPEG_OUTPUT="$WORKING_DIR/output/ffmpeg/linux$CPU"
+# FFMPEG_CACHE="$WORKING_DIR/cache/ffmpeg/linux$CPU"
 
-    FFMPEG_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --disable-shared --enable-static --enable-optimizations"
+# # $1 ENABLE_DEBUG
+# function build_ffmpeg {
+#     ENABLE_DEBUG=$1
 
-    if [ -r "$X264_SOURCE" ]; then
-        mkdir -p $X264_CACHE
-        cd $X264_CACHE
+#     FFMPEG_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --disable-shared --enable-static --enable-optimizations"
 
-        rm -rf $X264_OUTPUT
+#     if [ -r "$X264_SOURCE" ]; then
+#         mkdir -p $X264_CACHE
+#         cd $X264_CACHE
 
-        $X264_SOURCE/configure \
-            --prefix=$X264_OUTPUT \
-            --disable-asm \
-            --enable-static \
-            --enable-pic \
-            --disable-cli
+#         rm -rf $X264_OUTPUT
 
-        make clean
-        make -j4
-        make install
+#         $X264_SOURCE/configure \
+#             --prefix=$X264_OUTPUT \
+#             --disable-asm \
+#             --enable-static \
+#             --enable-pic \
+#             --disable-cli
 
-        INC="$INC -I$X264_OUTPUT/include"
-        LIB="$LIB -L$X264_OUTPUT/lib"
+#         make clean
+#         make -j4
+#         make install
 
-        FFMPEG_ARGS="$FFMPEG_ARGS --enable-gpl --enable-libx264"
-        export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$$X264_OUTPUT/lib/pkgconfig"
-        cd $WORKING_DIR
-        echo ">>>>>>编译完成 x264!<<<<<<"
-    fi
+#         INC="$INC -I$X264_OUTPUT/include"
+#         LIB="$LIB -L$X264_OUTPUT/lib"
 
-    if [ -r "$FFMPEG_SOURCE" ]; then
-        # 先切分支
-        cd $FFMPEG_SOURCE
-        if [ $(git status -s | wc -l) -gt 0 ]; then
-            git stash
-        fi
-        git checkout $BRANCH
+#         FFMPEG_ARGS="$FFMPEG_ARGS --enable-gpl --enable-libx264"
+#         export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$$X264_OUTPUT/lib/pkgconfig"
+#         cd $WORKING_DIR
+#         echo ">>>>>>编译完成 x264!<<<<<<"
+#     fi
 
-        rm -rf $FFMPEG_OUTPUT
+#     if [ -r "$FFMPEG_SOURCE" ]; then
+#         # 先切分支
+#         cd $FFMPEG_SOURCE
+#         if [ $(git status -s | wc -l) -gt 0 ]; then
+#             git stash
+#         fi
+#         git checkout $BRANCH
 
-        # 开始编译
-        mkdir -p $FFMPEG_CACHE
-        cd $FFMPEG_CACHE
-        $FFMPEG_SOURCE/configure $FFMPEG_ARGS \
-            --prefix=$FFMPEG_OUTPUT \
-            --enable-x86asm \
-            --extra-cflags="$INC" \
-            --extra-ldflags="$LIB"
+#         rm -rf $FFMPEG_OUTPUT
 
-        make clean
-        make -j4
-        make install
-        cd $WORKING_DIR
-        echo ">>>>>>编译完成 ffmpeg !<<<<<<"
-    fi
-}
+#         # 开始编译
+#         mkdir -p $FFMPEG_CACHE
+#         cd $FFMPEG_CACHE
+#         $FFMPEG_SOURCE/configure $FFMPEG_ARGS \
+#             --prefix=$FFMPEG_OUTPUT \
+#             --enable-x86asm \
+#             --extra-cflags="$INC" \
+#             --extra-ldflags="$LIB"
 
-build_ffmpeg 1
+#         make clean
+#         make -j4
+#         make install
+#         cd $WORKING_DIR
+#         echo ">>>>>>编译完成 ffmpeg !<<<<<<"
+#     fi
+# }
+
+# build_ffmpeg 1
