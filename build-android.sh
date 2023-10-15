@@ -8,13 +8,13 @@ set -e
 # 以下路径需要修改成自己的NDK目录
 TOOLCHAIN=/Users/feishu/Library/Android/sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/darwin-x86_64
 # 最低支持的android sdk版本
-API=23
+API=21
 
 export ANDROID_NDK=/Users/feishu/Library/Android/sdk/ndk/21.4.7075529
 export NDK=$ANDROID_NDK
 
 function build_android {
-    COMMON_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --enable-shared --disable-static"
+    COMMON_ARGS="--disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg --disable-shared --enable-static"
 
     #x264的头文件地址
     INC=""
@@ -37,14 +37,16 @@ function build_android {
         $X264_SOURCE/configure \
             --prefix=$X264_OUTPUT \
             --disable-asm \
-            --enable-shared \
+            --enable-debug \
+            --enable-static \
+            --disable-shared \
             --enable-pic \
             --disable-cli \
             --host=$HOST \
             --cross-prefix=$CROSS_PREFIX \
             --sysroot=$SYSROOT
         make clean
-        make
+        make -j12  # CPU 核心线程数，自己调一下
         make install
         echo ">>>>>>x264 编译完成!<<<<<<"
 
@@ -54,37 +56,36 @@ function build_android {
         LIB="$LIB -L$X264_OUTPUT/lib"
     fi
 
-    FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
-    FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/android-$CPU"
-    FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/android-$CPU"
+    # FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
+    # FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/android-$CPU"
+    # FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/android-$CPU"
 
-    if [ -r $FDK_AAC_SOURCE ]; then
-        echo "Compiling fdk-aac for $CPU"
+    # if [ -r $FDK_AAC_SOURCE ]; then
+    #     echo "Compiling fdk-aac for $CPU"
 
-        mkdir -p $FDK_AAC_CACHE
-        cd $FDK_AAC_CACHE
+    #     mkdir -p $FDK_AAC_CACHE
+    #     cd $FDK_AAC_CACHE
 
-        rm -rf $FDK_AAC_OUTPUT
+    #     rm -rf $FDK_AAC_OUTPUT
 
-        CC="$CC" CXX="$CC" CPP="$CC -E" AS="$AS" CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" CPPFLAGS="$CFLAGS" $FDK_AAC_SOURCE/configure \
-            --enable-shared --disable-static --with-pic=yes \
-            --prefix="$FDK_AAC_OUTPUT" \
-            --host=$HOST \
-            --cross-prefix=$CROSS_PREFIX \
-            --sysroot=$SYSROOT \
-            --debug
-            CC=$CC \
-            CXX=$CXX
+    #     $FDK_AAC_SOURCE/configure \
+    #         --enable-shared --disable-static --with-pic=yes \
+    #         --prefix="$FDK_AAC_OUTPUT" \
+    #         --host=$HOST \
+    #         --with-sysroot="$SYSROOT" \
+    #         --target=android --disable-asm \
+    #         CC=$CC \
+    #         CXX=$CXX
 
-        make clean
-        make -j8 install
+    #     make clean
+    #     make -j8 install
 
-        echo ">>>>>>>> fdk-aac 编译完成"
+    #     echo ">>>>>>>> fdk-aac 编译完成"
 
-        COMMON_ARGS="$COMMON_ARGS --enable-nonfree --enable-libfdk-aac"
-        INC="$INC -I$FDK_AAC_OUTPUT/include"
-        LIB="$LIB -I$FDK_AAC_OUTPUT/lib"
-    fi
+    #     COMMON_ARGS="$COMMON_ARGS --enable-nonfree --enable-libfdk-aac"
+    #     INC="$INC -I$FDK_AAC_OUTPUT/include"
+    #     LIB="$LIB -L$FDK_AAC_OUTPUT/lib"
+    # fi
 
     FFMPEG_SOURCE="$WORKING_DIR/ffmpeg"
     FFMPEG_OUTPUT="$WORKING_DIR/output/ffmpeg/android-$CPU"
@@ -107,7 +108,7 @@ function build_android {
         rm -rf $FFMPEG_OUTPUT
 
         $FFMPEG_SOURCE/configure $COMMON_ARGS \
-            --enable-debug --disable-optimizations --disable-asm --disable-stripping 
+            --enable-debug --disable-optimizations --disable-asm --disable-stripping \
             --prefix=$FFMPEG_OUTPUT \
             --enable-jni \
             --cross-prefix=$CROSS_PREFIX \
@@ -122,9 +123,27 @@ function build_android {
             --extra-ldflags="$ADDI_LDFLAGS $LIB" \
             $ADDITIONAL_CONFIGURE_FLAGs
         make clean
-        make
+        make -j12 # CPU 核心线程数，自己调一下
         make install
         echo "The Compilation of FFmpeg for $CPU is completed"
+    fi
+
+    MERGED_LIB_OUTPUT="$WORKING_DIR/output/dist/android-$CPU"
+
+    if [ "$MERGED_LIB_OUTPUT" ]; then
+
+        rm -rf $MERGED_LIB_OUTPUT
+        mkdir -p $MERGED_LIB_OUTPUT
+        cp -r $FFMPEG_OUTPUT/* $MERGED_LIB_OUTPUT/
+
+        if [ -r $X264_OUTPUT ]; then
+            cp -r $X264_OUTPUT/* $MERGED_LIB_OUTPUT/
+        fi
+
+        # if [ -r $FDK_AAC_OUTPUT ]; then
+        #     cp -r $FDK_AAC_OUTPUT/* $MERGED_LIB_OUTPUT/
+        # fi
+
     fi
 
     cd $WORKING_DIR
@@ -139,10 +158,10 @@ function build_android {
 #armv8-a
 ARCH=arm64
 CPU=armv8-a
-# # r21版本的ndk中所有的编译器都在/ndk/21.3.6528147/toolchains/llvm/prebuilt/darwin-x86_64/目录下（clang）
+
 export HOST=aarch64-linux-android
-export CC=$TOOLCHAIN/bin/aarch64-linux-android$API-clang
-export CXX=$TOOLCHAIN/bin/aarch64-linux-android$API-clang++
+export CC="$TOOLCHAIN/bin/aarch64-linux-android$API-clang"
+export CXX="$TOOLCHAIN/bin/aarch64-linux-android$API-clang++"
 
 echo Current C compiler: $CC
 echo Current C++ compiler: $CXX
@@ -153,6 +172,10 @@ CROSS_PREFIX=$TOOLCHAIN/bin/aarch64-linux-android-
 # so输出路径
 PREFIX=$WORKING_DIR/output/android/$CPU
 OPTIMIZE_CFLAGS="-march=$CPU"
+
+# export AR="$TOOLCHAIN/bin/aarch64-linux-android$API-ar"
+# export LD="$TOOLCHAIN/bin/aarch64-linux-android$API-ld"
+# export AS="${CROSS_COMPILE}gcc"
 build_android
 
 # CPU架构
