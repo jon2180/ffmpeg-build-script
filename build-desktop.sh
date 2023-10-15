@@ -70,8 +70,8 @@ function build_ffmpeg {
         make install
 
         # 修正
-        if [ -r $X264_OUTPUT/lib/libx264.dll.lib ]; then
-            mv $X264_OUTPUT/lib/libx264.dll.lib $X264_OUTPUT/lib/libx264.lib
+        if [ -r "$X264_OUTPUT/lib/libx264.dll.lib" ]; then
+            mv "$X264_OUTPUT/lib/libx264.dll.lib" "$X264_OUTPUT/lib/libx264.lib"
         fi
 
         FFMPEG_INC="$FFMPEG_INC -I$X264_OUTPUT/include"
@@ -109,9 +109,9 @@ function build_ffmpeg {
         make clean
         make -j${THREAD_COUNT} install
 
-        # 修正
-        if [ -r $FDK_AAC_OUTPUT/lib/libfdk-aac.dll.a ]; then
-            mv $FDK_AAC_OUTPUT/lib/libx264.dll.a $X264_OUTPUT/lib/libx264.lib
+        # 修正 一般也就 windows 比较特殊
+        if [ -r "$FDK_AAC_OUTPUT/lib/libfdk-aac.dll.a" ]; then
+            mv "$FDK_AAC_OUTPUT/lib/libfdk-aac.dll.a" "$FDK_AAC_OUTPUT/lib/libfdk-aac.lib"
         fi
 
         echo ">>>>>>>> fdk-aac 编译完成"
@@ -126,7 +126,7 @@ function build_ffmpeg {
     FFMPEG_OUTPUT="$WORKING_DIR/output/ffmpeg/${PLATFORM}-$CPU"
     FFMPEG_CACHE="$WORKING_DIR/cache/ffmpeg/${PLATFORM}-$CPU"
 
-    if [ -n $FFMPEG_SOURCE -a -r "$FFMPEG_SOURCE" ]; then
+    if [ -n "$FFMPEG_SOURCE" -a -r "$FFMPEG_SOURCE" ]; then
         # 先切分支
         cd $FFMPEG_SOURCE
         # 有调试需要，会恢复代码修改
@@ -156,14 +156,14 @@ function build_ffmpeg {
 
         rm -rf $MERGED_LIB_OUTPUT
         mkdir -p $MERGED_LIB_OUTPUT
-        cp -r $FFMPEG_OUTPUT/* $MERGED_LIB_OUTPUT/
+        cp -r "$FFMPEG_OUTPUT/*" "$MERGED_LIB_OUTPUT/"
 
         if [ -r $X264_OUTPUT ]; then
-            cp -r $X264_OUTPUT/* $MERGED_LIB_OUTPUT/
+            cp -r "$X264_OUTPUT/*" "$MERGED_LIB_OUTPUT/"
         fi
 
         if [ -r $FDK_AAC_OUTPUT ]; then
-            cp -r $FDK_AAC_OUTPUT/* $MERGED_LIB_OUTPUT/
+            cp -r "$FDK_AAC_OUTPUT/*" "$MERGED_LIB_OUTPUT/"
         fi
 
     fi
