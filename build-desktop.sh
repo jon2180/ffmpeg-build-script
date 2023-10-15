@@ -83,9 +83,9 @@ function build_ffmpeg {
         echo ">>>>>>编译完成 x264!<<<<<<"
     fi
 
-    # FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
-    # FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/${PLATFORM}-$CPU"
-    # FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/${PLATFORM}-$CPU"
+    FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
+    FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/${PLATFORM}-$CPU"
+    FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/${PLATFORM}-$CPU"
 
     # if [ -n $FDK_AAC_SOURCE -a -r $FDK_AAC_SOURCE ]; then
     #     echo "Compiling fdk-aac for $CPU"
