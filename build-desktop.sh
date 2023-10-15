@@ -83,44 +83,44 @@ function build_ffmpeg {
         echo ">>>>>>编译完成 x264!<<<<<<"
     fi
 
-    FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
-    FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/${PLATFORM}-$CPU"
-    FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/${PLATFORM}-$CPU"
+    # FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
+    # FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/${PLATFORM}-$CPU"
+    # FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/${PLATFORM}-$CPU"
 
-    if [ -n $FDK_AAC_SOURCE -a -r $FDK_AAC_SOURCE ]; then
-        echo "Compiling fdk-aac for $CPU"
+    # if [ -n $FDK_AAC_SOURCE -a -r $FDK_AAC_SOURCE ]; then
+    #     echo "Compiling fdk-aac for $CPU"
 
-        cd $FDK_AAC_SOURCE
-        ./autogen.sh
+    #     cd $FDK_AAC_SOURCE
+    #     ./autogen.sh
 
-        mkdir -p $FDK_AAC_CACHE
-        cd $FDK_AAC_CACHE
+    #     mkdir -p $FDK_AAC_CACHE
+    #     cd $FDK_AAC_CACHE
 
-        rm -rf $FDK_AAC_OUTPUT
+    #     rm -rf $FDK_AAC_OUTPUT
 
-        # CC="$CC" CXX="$CC" CPP="$CC -E" AS="$AS" CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" CPPFLAGS="$CFLAGS"
-        $FDK_AAC_SOURCE/configure --prefix="$FDK_AAC_OUTPUT" $FDK_AAC_ARGS --with-pic=yes
+    #     # CC="$CC" CXX="$CC" CPP="$CC -E" AS="$AS" CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" CPPFLAGS="$CFLAGS"
+    #     $FDK_AAC_SOURCE/configure --prefix="$FDK_AAC_OUTPUT" $FDK_AAC_ARGS --with-pic=yes
 
-        # 交叉编译配置
-        # --host=$HOST \
-        # --cross-prefix=$CROSS_PREFIX \
-        # --sysroot=$SYSROOT \
+    #     # 交叉编译配置
+    #     # --host=$HOST \
+    #     # --cross-prefix=$CROSS_PREFIX \
+    #     # --sysroot=$SYSROOT \
 
-        make clean
-        make -j${THREAD_COUNT} install
+    #     make clean
+    #     make -j${THREAD_COUNT} install
 
-        # 修正 一般也就 windows 比较特殊
-        if [ -r "$FDK_AAC_OUTPUT/lib/libfdk-aac.dll.a" ]; then
-            mv "$FDK_AAC_OUTPUT/lib/libfdk-aac.dll.a" "$FDK_AAC_OUTPUT/lib/libfdk-aac.lib"
-        fi
+    #     # 修正 一般也就 windows 比较特殊
+    #     if [ -r "$FDK_AAC_OUTPUT/lib/libfdk-aac.dll.a" ]; then
+    #         mv "$FDK_AAC_OUTPUT/lib/libfdk-aac.dll.a" "$FDK_AAC_OUTPUT/lib/libfdk-aac.lib"
+    #     fi
 
-        echo ">>>>>>>> fdk-aac 编译完成"
+    #     echo ">>>>>>>> fdk-aac 编译完成"
 
-        FFMPEG_ARGS="$FFMPEG_ARGS --enable-nonfree --enable-libfdk-aac"
-        export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$$FDK_AAC_OUTPUT/lib/pkgconfig"
-        FFMPEG_INC="$FFMPEG_INC -I$FDK_AAC_OUTPUT/include"
-        FFMPEG_LIB="$FFMPEG_LIB -L$FDK_AAC_OUTPUT/lib"
-    fi
+    #     FFMPEG_ARGS="$FFMPEG_ARGS --enable-nonfree --enable-libfdk-aac"
+    #     export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$$FDK_AAC_OUTPUT/lib/pkgconfig"
+    #     FFMPEG_INC="$FFMPEG_INC -I$FDK_AAC_OUTPUT/include"
+    #     FFMPEG_LIB="$FFMPEG_LIB -L$FDK_AAC_OUTPUT/lib"
+    # fi
 
     FFMPEG_SOURCE="$WORKING_DIR/ffmpeg"
     FFMPEG_OUTPUT="$WORKING_DIR/output/ffmpeg/${PLATFORM}-$CPU"
