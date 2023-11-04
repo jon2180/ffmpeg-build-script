@@ -8,13 +8,13 @@ set -x
 # $1 ENABLE_DEBUG
 function build_ffmpeg {
     # 启用 DEBUG ? 1 启用 空不启用
-    ENABLE_DEBUG=1
+    ENABLE_DEBUG=0
     USE_STATIC=0
     # windows, linux, macos
     PLATFORM="$1"
     CPU="$2"
     # 编译线程数量，看 CPU 而定
-    THREAD_COUNT=24
+    THREAD_COUNT=12
 
     # 参数 桌面端使用动态库
     X264_ARGS=""
@@ -24,7 +24,11 @@ function build_ffmpeg {
     if [ $PLATFORM == "windows" ]; then
         FFMPEG_ARGS="$FFMPEG_ARGS --toolchain=msvc"
         CC=cl
+        CXX=cl
         LD=link
+    else
+        CC=gcc
+        CXX=g++
     fi
 
     if [ $USE_STATIC -eq 1 ]; then
@@ -37,12 +41,15 @@ function build_ffmpeg {
         FFMPEG_ARGS="$FFMPEG_ARGS --enable-shared --disable-static"
     fi
 
-    if [ $ENABLE_DEBUG ]; then
+    if [ $ENABLE_DEBUG -eq 1 ]; then
         X264_ARGS="$X264_ARGS --enable-debug"
         FDK_AAC_ARGS="$FDK_AAC_ARGS --enable-debug"
         FFMPEG_ARGS="$FFMPEG_ARGS --enable-debug --disable-optimizations --disable-asm --disable-stripping"
+        DEBUG_PATH_SUFFIX="debug"
     else
-        FFMPEG_ARGS="$FFMPEG_ARGS --enable-optimization"
+        X264_ARGS="$X264_ARGS --enable-strip --enable-lto"
+        FFMPEG_ARGS="$FFMPEG_ARGS --disable-debug --enable-optimizations"
+        DEBUG_PATH_SUFFIX="release"
     fi
 
     #x264的头文件地址
@@ -52,7 +59,7 @@ function build_ffmpeg {
     FFMPEG_LIB=""
 
     X264_SOURCE="$WORKING_DIR/x264"
-    X264_OUTPUT="$WORKING_DIR/output/x264/${PLATFORM}-$CPU"
+    X264_OUTPUT="$WORKING_DIR/output/x264/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}"
     X264_CACHE="$WORKING_DIR/cache/x264/${PLATFORM}-$CPU"
 
     if [ -n $X264_SOURCE -a -r "$X264_SOURCE" ]; then
@@ -84,7 +91,7 @@ function build_ffmpeg {
     fi
 
     # FDK_AAC_SOURCE="$WORKING_DIR/fdk-aac-2.0.2"
-    # FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/${PLATFORM}-$CPU"
+    # FDK_AAC_OUTPUT="$WORKING_DIR/output/fdk-aac/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}"
     # FDK_AAC_CACHE="$WORKING_DIR/cache/fdk-aac/${PLATFORM}-$CPU"
 
     # if [ -n $FDK_AAC_SOURCE -a -r $FDK_AAC_SOURCE ]; then
@@ -123,7 +130,7 @@ function build_ffmpeg {
     # fi
 
     FFMPEG_SOURCE="$WORKING_DIR/ffmpeg"
-    FFMPEG_OUTPUT="$WORKING_DIR/output/ffmpeg/${PLATFORM}-$CPU"
+    FFMPEG_OUTPUT="$WORKING_DIR/output/ffmpeg/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}"
     FFMPEG_CACHE="$WORKING_DIR/cache/ffmpeg/${PLATFORM}-$CPU"
 
     if [ -n "$FFMPEG_SOURCE" -a -r "$FFMPEG_SOURCE" ]; then
@@ -150,30 +157,32 @@ function build_ffmpeg {
         echo ">>>>>>编译完成 ffmpeg !<<<<<<"
     fi
 
-    MERGED_LIB_OUTPUT="$WORKING_DIR/output/dist/${PLATFORM}-$CPU"
+    # MERGED_LIB_OUTPUT="$WORKING_DIR/output/dist/${PLATFORM}-$CPU"
 
-    if [ -n "$MERGED_LIB_OUTPUT" ]; then
+    # if [ -n "$MERGED_LIB_OUTPUT" ]; then
 
-        rm -rf $MERGED_LIB_OUTPUT
-        mkdir -p $MERGED_LIB_OUTPUT
-        if [ -n $FFMPEG_OUTPUT -a -r $FFMPEG_OUTPUT ]; then
-            cp -r ${FFMPEG_OUTPUT}/* "$MERGED_LIB_OUTPUT/"
-        fi
+    #     rm -rf $MERGED_LIB_OUTPUT
+    #     mkdir -p $MERGED_LIB_OUTPUT
+    #     if [ -n $FFMPEG_OUTPUT -a -r $FFMPEG_OUTPUT ]; then
+    #         cp -r ${FFMPEG_OUTPUT}/* "$MERGED_LIB_OUTPUT/"
+    #     fi
 
-        if [ -n $X264_OUTPUT -a -r $X264_OUTPUT ]; then
-            cp -r ${X264_OUTPUT}/* "$MERGED_LIB_OUTPUT/"
-        fi
+    #     if [ -n $X264_OUTPUT -a -r $X264_OUTPUT ]; then
+    #         cp -r ${X264_OUTPUT}/* "$MERGED_LIB_OUTPUT/"
+    #     fi
 
-        # if [ -n $FDK_AAC_OUTPUT -a -r $FDK_AAC_OUTPUT ]; then
-        #     cp -r ${FDK_AAC_OUTPUT}/* "$MERGED_LIB_OUTPUT/"
-        # fi
+    #     # if [ -n $FDK_AAC_OUTPUT -a -r $FDK_AAC_OUTPUT ]; then
+    #     #     cp -r ${FDK_AAC_OUTPUT}/* "$MERGED_LIB_OUTPUT/"
+    #     # fi
 
-        libs=$(find $MERGED_LIB_OUTPUT/bin/ -name "*.lib")
-        for n in $libs; do
-            mv $n $MERGED_LIB_OUTPUT/lib/
-        done
-    fi
+    #     libs=$(find $MERGED_LIB_OUTPUT/bin/ -name "*.lib")
+    #     for n in $libs; do
+    #         mv $n $MERGED_LIB_OUTPUT/lib/
+    #     done
+    # fi
 }
+
+
 
 if [ "${1}" == "windows" -o "$1" == "linux" -o "$1" == "macos" ]; then
     if [ "$2" == "x86_64" -o "$2" == "arm64" ]; then

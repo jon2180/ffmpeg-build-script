@@ -13,7 +13,7 @@ SCRATCH="$OUTPUT_DIR/scratch"
 THIN=$OUTPUT_DIR/thin
 
 # absolute path to x264 library
-X264=$OUTPUT_DIR/x264-iOS
+X264=$WORKING_DIR/output/iOS/x264-iOS
 
 #FDK_AAC=`pwd`/../fdk-aac-build-script-for-iOS/fdk-aac-ios
 
@@ -89,7 +89,7 @@ then
 	if [ -r $WORKING_DIR/$SOURCE/.git ]
 	then
 		cd $WORKING_DIR/$SOURCE
-		git stash
+		# git stash
 		git checkout $BRANCH
 		cd $WORKING_DIR
 	fi
@@ -161,7 +161,7 @@ then
 		    --prefix="$THIN/$ARCH" \
 		|| exit 1
 
-		make -j3 install $EXPORT || exit 1
+		make -j12 install $EXPORT || exit 1
 		cd $CWD
 	done
 fi

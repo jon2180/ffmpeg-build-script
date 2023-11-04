@@ -10,7 +10,10 @@ ARCHS="arm64"
 # directories
 SOURCE="x264"
 
-OUTPUT_DIR=$WORKING_DIR/output/iOS
+X264_SOURCE="$WORKING_DIR/x264"
+X264_OUTPUT="$WORKING_DIR/output/x264/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}"
+X264_CACHE="$WORKING_DIR/cache/x264/${PLATFORM}-$CPU"
+
 
 FAT="$OUTPUT_DIR/x264-iOS"
 
@@ -95,7 +98,7 @@ then
 		    --extra-ldflags="$LDFLAGS" \
 		    --prefix="$THIN/$ARCH" || exit 1
 
-		make -j3 install || exit 1
+		make -j12 install || exit 1
 		cd $CWD
 	done
 fi
