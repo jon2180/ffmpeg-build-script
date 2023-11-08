@@ -2,7 +2,7 @@
 
 . ./common.sh
 
-CONFIGURE_FLAGS="--enable-static --enable-pic --disable-cli"
+CONFIGURE_FLAGS="--enable-static --enable-pic --disable-cli --enable-strip --enable-lto"
 
 ARCHS="arm64"
 # ARCHS="arm64 x86_64 i386 armv7 armv7s"
@@ -10,16 +10,19 @@ ARCHS="arm64"
 # directories
 SOURCE="x264"
 
+PLATFORM=iOS
+DEBUG_PATH_SUFFIX="release"
+CPU=$ARCHS
+
 X264_SOURCE="$WORKING_DIR/x264"
 X264_OUTPUT="$WORKING_DIR/output/x264/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}"
 X264_CACHE="$WORKING_DIR/cache/x264/${PLATFORM}-$CPU"
 
+FAT="$X264_OUTPUT/"
 
-FAT="$OUTPUT_DIR/x264-iOS"
-
-SCRATCH="$OUTPUT_DIR/scratch-x264"
+SCRATCH="$WORKING_DIR/output/x264/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}-scratch"
 # must be an absolute path
-THIN=$OUTPUT_DIR/thin-x264
+THIN="$WORKING_DIR/output/x264/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}-thin"
 
 COMPILE="y"
 LIPO="y"

@@ -2,23 +2,31 @@
 
 . ./common.sh
 
+ARCHS="arm64"
+# ARCHS="arm64 armv7 x86_64 i386"
+
+
 # SOURCE="ffmpeg"
+PLATFORM=iOS
+DEBUG_PATH_SUFFIX="release"
+CPU=$ARCHS
 
-OUTPUT_DIR="$WORKING_DIR/output/iOS"
+OUTPUT_DIR="$WORKING_DIR/output/ffmpeg/"
 
-FAT="$OUTPUT_DIR/ffmpeg" 
+FAT="$OUTPUT_DIR/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}" 
 
-SCRATCH="$OUTPUT_DIR/scratch"
+SCRATCH="$OUTPUT_DIR/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}-scratch"
 # must be an absolute path
-THIN=$OUTPUT_DIR/thin
+THIN=$OUTPUT_DIR/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}-thin
 
 # absolute path to x264 library
-X264=$WORKING_DIR/output/iOS/x264-iOS
-
+X264="$WORKING_DIR/output/x264/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}"
 #FDK_AAC=`pwd`/../fdk-aac-build-script-for-iOS/fdk-aac-ios
 
 CONFIGURE_FLAGS="--enable-cross-compile --disable-debug --disable-programs \
                  --disable-doc --enable-pic --disable-audiotoolbox"
+CONFIGURE_FLAGS="$CONFIGURE_FLAGS --disable-avdevice --disable-postproc --disable-everything --enable-encoder=aac --enable-encoder=libx264 --enable-muxer=h264 --enable-muxer=mp4 --enable-protocol=file --enable-protocol=rtmp --enable-filter=scale"
+
 #  --enable-shared --disable-static
 if [ "$X264" ]
 then
@@ -33,8 +41,6 @@ fi
 # avresample
 #CONFIGURE_FLAGS="$CONFIGURE_FLAGS --enable-avresample"
 
-ARCHS="arm64"
-# ARCHS="arm64 armv7 x86_64 i386"
 
 COMPILE="y"
 LIPO="y"

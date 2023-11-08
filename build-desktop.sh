@@ -20,6 +20,7 @@ function build_ffmpeg {
     X264_ARGS=""
     FDK_AAC_ARGS=""
     FFMPEG_ARGS="--arch=$CPU --disable-doc --disable-ffplay --disable-ffprobe --disable-ffmpeg"
+    FFMPEG_ARGS="$FFMPEG_ARGS --disable-avdevice --disable-postproc --disable-everything --enable-encoder=aac --enable-encoder=libx264 --enable-muxer=h264 --enable-muxer=mp4 --enable-protocol=file --enable-protocol=rtmp --enable-filter=scale"
 
     if [ $PLATFORM == "windows" ]; then
         FFMPEG_ARGS="$FFMPEG_ARGS --toolchain=msvc"
@@ -186,7 +187,9 @@ function build_ffmpeg {
 
 if [ "${1}" == "windows" -o "$1" == "linux" -o "$1" == "macos" ]; then
     if [ "$2" == "x86_64" -o "$2" == "arm64" ]; then
-        build_ffmpeg $1 $2
+        LOG_FILE_NAME=$WORKING_DIR/build/$1-$2.log 
+        echo "writing to log file $LOG_FILE_NAME, please check the log file"
+        build_ffmpeg $1 $2 > $LOG_FILE_NAME 2>&1
     else
         echo "unsupport cpu arch $2. Valid [ 'x86_64', 'arm64' ]"
     fi
