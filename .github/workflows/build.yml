@@ -4,10 +4,8 @@ on: [push]
 
 jobs:
   build:
-
-    runs-on: macOS-latest
-    
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v1
     - name: build
-      run: ./build-ffmpeg.sh 2>.stderr
+      run: ./build-desktop.sh linux x86_64 2>.stderr
