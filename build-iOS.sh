@@ -2,7 +2,7 @@
 
 . ./common.sh
 
-ARCHS="arm64"
+ARCHS="arm64 x86_64"
 # ARCHS="arm64 armv7 x86_64 i386"
 
 

@@ -2,30 +2,27 @@
 
 . ./common.sh
 
-CONFIGURE_FLAGS="--enable-static --enable-pic --disable-cli --enable-strip --enable-lto"
+set -e
+set -x
 
-ARCHS="arm64"
+CONFIGURE_FLAGS="--enable-static --enable-pic --disable-cli --enable-strip"
+
 # ARCHS="arm64 x86_64 i386 armv7 armv7s"
+ARCHS="arm64 x86_64"
 
 # directories
 SOURCE="x264"
-
-PLATFORM=iOS
-DEBUG_PATH_SUFFIX="release"
-CPU=$ARCHS
-
 X264_SOURCE="$WORKING_DIR/x264"
-X264_OUTPUT="$WORKING_DIR/output/x264/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}"
-X264_CACHE="$WORKING_DIR/cache/x264/${PLATFORM}-$CPU"
 
 FAT="$X264_OUTPUT/"
 
-SCRATCH="$WORKING_DIR/output/x264/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}-scratch"
-# must be an absolute path
-THIN="$WORKING_DIR/output/x264/${PLATFORM}-$CPU-${DEBUG_PATH_SUFFIX}-thin"
+PLATFORM=iOS
+DEBUG_PATH_SUFFIX="release"
 
 COMPILE="y"
-LIPO="y"
+LIPO="n"
+
+DEPLOYMENT_TARGET="12.0"
 
 if [ "$*" ]
 then
@@ -48,22 +45,18 @@ then
 	CWD=`pwd`
 	for ARCH in $ARCHS
 	do
-		echo "building $ARCH..."
-		mkdir -p "$SCRATCH/$ARCH"
-		cd "$SCRATCH/$ARCH"
 		CFLAGS="-arch $ARCH"
-                ASFLAGS=
+		ASFLAGS=
 
 		if [ "$ARCH" = "i386" -o "$ARCH" = "x86_64" ]
 		then
 		    PLATFORM="iPhoneSimulator"
-		    CPU=
 		    if [ "$ARCH" = "x86_64" ]
 		    then
-		    	CFLAGS="$CFLAGS -mios-simulator-version-min=7.0"
+		    	CFLAGS="$CFLAGS -mios-simulator-version-min=$DEPLOYMENT_TARGET"
 		    	HOST=
 		    else
-		    	CFLAGS="$CFLAGS -mios-simulator-version-min=5.0"
+		    	CFLAGS="$CFLAGS -mios-simulator-version-min=$DEPLOYMENT_TARGET"
 			HOST="--host=i386-apple-darwin"
 		    fi
 		else
@@ -71,14 +64,27 @@ then
 		    if [ $ARCH = "arm64" ]
 		    then
 		        HOST="--host=aarch64-apple-darwin"
-			XARCH="-arch aarch64"
+				XARCH="-arch aarch64"
 		    else
 		        HOST="--host=arm-apple-darwin"
-			XARCH="-arch arm"
+				XARCH="-arch arm"
 		    fi
-                    CFLAGS="$CFLAGS -fembed-bitcode -mios-version-min=7.0"
-                    ASFLAGS="$CFLAGS"
+			CFLAGS="$CFLAGS -fembed-bitcode -mios-version-min=$DEPLOYMENT_TARGET"
+			ASFLAGS="$CFLAGS"
 		fi
+
+		X264_OUTPUT="$WORKING_DIR/output/x264/${PLATFORM}-$ARCH-${DEBUG_PATH_SUFFIX}"
+		X264_CACHE="$WORKING_DIR/cache/x264/${PLATFORM}-$ARCH-${DEBUG_PATH_SUFFIX}"
+
+		# SCRATCH="$WORKING_DIR/output/x264/${PLATFORM}-$ARCH-${DEBUG_PATH_SUFFIX}-scratch"
+		# must be an absolute path
+		# THIN="$WORKING_DIR/output/x264/${PLATFORM}-$ARCH-${DEBUG_PATH_SUFFIX}-thin"
+
+		echo "building $ARCH..."
+		# mkdir -p "$SCRATCH/$ARCH"
+		# cd "$SCRATCH/$ARCH"
+		mkdir -p "$X264_CACHE"
+		cd "$X264_CACHE"
 
 		XCRUN_SDK=`echo $PLATFORM | tr '[:upper:]' '[:lower:]'`
 		CC="xcrun -sdk $XCRUN_SDK clang"
@@ -91,34 +97,34 @@ then
 		CXXFLAGS="$CFLAGS"
 		LDFLAGS="$CFLAGS"
 
-		rm -f $CWD/$SOURCE/config.h
-		rm -f $CWD/$SOURCE/x264_config.h
-		CC=$CC $CWD/$SOURCE/configure \
+		# rm -f $CWD/$SOURCE/config.h
+		# rm -f $CWD/$SOURCE/x264_config.h
+		CC=$CC $X264_SOURCE/configure \
 		    $CONFIGURE_FLAGS \
 		    $HOST \
 		    --extra-cflags="$CFLAGS" \
 		    --extra-asflags="$ASFLAGS" \
 		    --extra-ldflags="$LDFLAGS" \
-		    --prefix="$THIN/$ARCH" || exit 1
+		    --prefix="$X264_OUTPUT" || exit 1
 
 		make -j12 install || exit 1
 		cd $CWD
 	done
 fi
 
-if [ "$LIPO" ]
-then
-	echo "building fat binaries..."
-	mkdir -p $FAT/lib
-	set - $ARCHS
-	CWD=`pwd`
-	cd $THIN/$1/lib
-	for LIB in *.a
-	do
-		cd $CWD
-		lipo -create `find $THIN -name $LIB` -output $FAT/lib/$LIB
-	done
+# if [ "$LIPO" ]
+# then
+# 	echo "building fat binaries..."
+# 	mkdir -p $FAT/lib
+# 	set - $ARCHS
+# 	CWD=`pwd`
+# 	cd $THIN/$1/lib
+# 	for LIB in *.a
+# 	do
+# 		cd $CWD
+# 		lipo -create `find $THIN -name $LIB` -output $FAT/lib/$LIB
+# 	done
 
-	cd $CWD
-	cp -rf $THIN/$1/include $FAT
-fi
+# 	cd $CWD
+# 	cp -rf $THIN/$1/include $FAT
+# fi

@@ -5,11 +5,13 @@
 set -e
 set -x
 
+export MACOSX_DEPLOYMENT_TARGET=10.14
+
 # $1 ENABLE_DEBUG
 function build_ffmpeg {
     # 启用 DEBUG ? 1 启用 空不启用
     ENABLE_DEBUG=0
-    USE_STATIC=0
+    USE_STATIC=1
     # windows, linux, macos
     PLATFORM="$1"
     CPU="$2"
@@ -48,7 +50,7 @@ function build_ffmpeg {
         FFMPEG_ARGS="$FFMPEG_ARGS --enable-debug --disable-optimizations --disable-asm --disable-stripping"
         DEBUG_PATH_SUFFIX="debug"
     else
-        X264_ARGS="$X264_ARGS --enable-strip --enable-lto"
+        X264_ARGS="$X264_ARGS --enable-strip"
         FFMPEG_ARGS="$FFMPEG_ARGS --disable-debug --enable-optimizations"
         DEBUG_PATH_SUFFIX="release"
     fi
@@ -70,7 +72,7 @@ function build_ffmpeg {
 
         rm -rf $X264_OUTPUT
 
-        CC=$CC $X264_SOURCE/configure --prefix=$X264_OUTPUT $X264_ARGS --disable-cli
+        CC=$CC $X264_SOURCE/configure --prefix=$X264_OUTPUT $X264_ARGS --disable-cli --extra-cflags="-mmacos-version-min=10.14"
         # --disable-asm \
         # --enable-pic \
         make clean
@@ -150,7 +152,7 @@ function build_ffmpeg {
         # 开始编译
         mkdir -p $FFMPEG_CACHE
         cd $FFMPEG_CACHE
-        $FFMPEG_SOURCE/configure $FFMPEG_ARGS --prefix=$FFMPEG_OUTPUT --enable-x86asm --extra-cflags="$FFMPEG_INC" --extra-ldflags="$FFMPEG_LIB"
+        $FFMPEG_SOURCE/configure $FFMPEG_ARGS --prefix=$FFMPEG_OUTPUT --enable-x86asm --extra-cflags="$FFMPEG_INC -mmacos-version-min=10.14" --extra-ldflags="$FFMPEG_LIB"
         make clean
         make -j${THREAD_COUNT}
         make install
@@ -187,7 +189,9 @@ function build_ffmpeg {
 
 if [ "${1}" == "windows" -o "$1" == "linux" -o "$1" == "macos" ]; then
     if [ "$2" == "x86_64" -o "$2" == "arm64" ]; then
-        LOG_FILE_NAME=$WORKING_DIR/build/$1-$2.log 
+        LOG_FILE_DIR=$WORKING_DIR/build/
+        LOG_FILE_NAME=$LOG_FILE_DIR/$1-$2.log
+        mkdir -p $LOG_FILE_DIR
         echo "writing to log file $LOG_FILE_NAME, please check the log file"
         build_ffmpeg $1 $2 > $LOG_FILE_NAME 2>&1
     else
