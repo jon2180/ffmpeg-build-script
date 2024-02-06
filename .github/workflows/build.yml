@@ -3,11 +3,14 @@ name: CI
 on: [push]
 
 jobs:
-  build:
-
-    runs-on: macOS-latest
-    
+  build_macOS:
+    name: macOS
+    runs-on: macos-13
     steps:
-    - uses: actions/checkout@v1
-    - name: build
-      run: ./build-ffmpeg.sh 2>.stderr
+    - name: use python3.9
+      run: |
+        brew install python@3.9
+    - uses: actions/checkout@v2
+    - name: Run build script
+      run: |
+        ./build-desktop.sh macos x86_64
