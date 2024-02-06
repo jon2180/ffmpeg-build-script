@@ -8,3 +8,5 @@ FFmpeg-*
 build/
 output/
 cache
+.vscode/
+.idea/
