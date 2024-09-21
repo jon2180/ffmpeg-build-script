@@ -4,3 +4,7 @@ fat*
 FFmpeg.framework
 FFmpeg-*
 .DS_Store
+
+build
+sources
+installed-*
