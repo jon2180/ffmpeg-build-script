@@ -11,13 +11,13 @@ function build_x264_windows {
 
     X264_PREFIX="${BASIC_PREFIX}/x264"
 
-    local x264_cache="${BAISC_CACHE}/x264"
-
     if [ -n $X264_SOURCE -a -r "$X264_SOURCE" ]; then
+        echo "Building and installing libx264"
+
+        local x264_cache="${BAISC_CACHE}/x264"
         rm -rf $x264_cache
         mkdir -p $x264_cache
         cd $x264_cache
-        echo "Building and installing libx264"
 
         local x264_args=$X264_BASIC_ARGS
 
@@ -55,17 +55,16 @@ function build_fdkaac_windows {
 
     FDKAAC_PREFIX="${BASIC_PREFIX}/fdk-aac"
 
-    local FDKAAC_CACHE="${BAISC_CACHE}/fdk-aac"
-
     return 1
     if [ -n "$FDKAAC_SOURCE" ] && [ -r "$FDKAAC_SOURCE" ]; then
         echo "Compiling fdk-aac for $CPU"
 
+        local FDKAAC_CACHE="${BAISC_CACHE}/fdk-aac"
+        mkdir -p $FDKAAC_CACHE
+        cd $FDKAAC_CACHE
+
         cd $FDKAAC_SOURCE
         ./autogen.sh
-
-        mkdir -p $FDK_AAC_CACHE
-        cd $FDK_AAC_CACHE
 
         rm -rf $FDKAAC_PREFIX
         mkdir -p $FDKAAC_PREFIX
@@ -73,6 +72,13 @@ function build_fdkaac_windows {
 
         make clean
         make -j${CORE_COUNT} install
+
+        echo "start to copying license files..."
+        find ${FDKAAC_SOURCE}/ -name "COPYING*" -o -name "LICENSE*" -o -name "LISENSE*" | while read file_name; do
+            echo "INSTALL copying file $file_name to $FDKAAC_PREFIX/"
+            cp $file_name $FDKAAC_PREFIX/
+        done
+        echo "copying license files done"
 
         # 修正 一般也就 windows 比较特殊
         if [ -r "$FDKAAC_PREFIX/lib/libfdk-aac.dll.a" ]; then
@@ -136,19 +142,17 @@ function build_ffmpeg {
 
     FFMPEG_PREFIX="${BASIC_PREFIX}/ffmpeg"
 
-    # local ffmpeg_args="--arch=$CPU --toolchain=msvc --enable-cross-compile --target-os=win64"
-    local ffmpeg_args="--arch=$CPU --toolchain=msvc --target-os=win64"
-    # --enable-yasm --enable-asm
-
-    local ffmpeg_cache="${BAISC_CACHE}/ffmpeg"
-
     if [ -n "$FFMPEG_SOURCE" -a -r "$FFMPEG_SOURCE" ]; then
         echo "Building add installing ffmpeg"
 
         # 开始编译
+        local ffmpeg_cache="${BAISC_CACHE}/ffmpeg"
         rm -rf $ffmpeg_cache
         mkdir -p $ffmpeg_cache
         cd $ffmpeg_cache
+
+        # local ffmpeg_args="--arch=$CPU --toolchain=msvc --enable-cross-compile --target-os=win64"
+        local ffmpeg_args="--arch=$CPU --toolchain=msvc --target-os=win64 --enable-asm --enable-x86asm"
 
         # 启用 x86asm 后会生成 ff_tx_codelet_list_float_x86 会生成失败
         rm -rf $FFMPEG_PREFIX
@@ -162,8 +166,6 @@ function build_ffmpeg {
             --cxx=$CXX \
             --ld=$LD \
             --prefix=$FFMPEG_PREFIX \
-            --enable-asm \
-            --enable-x86asm \
             --extra-cflags="$ffmpeg_inc" \
             --extra-ldflags="$ffmpeg_lib" | tee $FFMPEG_PREFIX/configuration.txt || exit 1 # 最后通过 tee 命令复制了配置到文件中
 
