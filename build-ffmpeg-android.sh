@@ -113,7 +113,7 @@ function build_openssl_android {
     # ffmpeg_inc="$ffmpeg_inc -I$openssl_inc"
     # ffmpeg_lib="$ffmpeg_lib -L$openssl_lib"
     # ffmpeg_args="$ffmpeg_args --enable-nonfree --enable-openssl --enable-protocol=https"
-    return 1
+    return 0
 }
 
 function build_ffmpeg_android {
@@ -157,7 +157,7 @@ function build_ffmpeg_android {
         mkdir -p $ffmpeg_cache
         cd $ffmpeg_cache
 
-        local ffmpeg_args="--enable-asm --enable-x86asm"
+        local ffmpeg_args="--enable-asm"
 
         rm -rf $FFMPEG_PREFIX
         mkdir -p $FFMPEG_PREFIX
@@ -178,8 +178,7 @@ function build_ffmpeg_android {
             --sysroot=$SYSROOT \
             --extra-cflags="-Os -fpic $OPTIMIZE_CFLAGS $ffmpeg_inc" \
             --extra-ldflags="$ADDI_LDFLAGS $ffmpeg_lib" \
-            --pkg-config="pkg-config --static" \
-            $ADDITIONAL_CONFIGURE_FLAGs | tee $FFMPEG_PREFIX/configuration.txt || exit 1 # 最后通过 tee 命令复制了配置到文件中
+            --pkg-config="pkg-config --static" | tee $FFMPEG_PREFIX/configuration.txt || exit 1 # 最后通过 tee 命令复制了配置到文件中
 
         make clean
         make -j${CORE_COUNT} # CPU 核心线程数，自己调一下
@@ -212,10 +211,11 @@ function build_ffmpeg_android {
     #     # fi
 
     # fi
-
+    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH_OLD
     cd $WORKING_DIR
 }
 
+PKG_CONFIG_PATH_OLD=$PKG_CONFIG_PATH
 for ARCH in $archs; do
     ARCH=$ARCH
 
@@ -226,8 +226,8 @@ for ARCH in $archs; do
         CROSS_PREFIX=$ANDROID_NDK_TOOLCHAIN/bin/aarch64-linux-android-
         OPTIMIZE_CFLAGS="-march=$CPU"
 
-        OPENSSL_ROOT_INC="/Users/feishu/Documents/OpenSSL/1_0_2h/include/Android/ARM64"
-        OPENSSL_ROOT_LIB="/Users/feishu/Documents/OpenSSL/1_0_2h/lib/Android/ARM64"
+        OPENSSL_ROOT_INC="${CWD}/OpenSSL/1_0_2h/include/Android/ARM64"
+        OPENSSL_ROOT_LIB="${CWD}/OpenSSL/1_0_2h/lib/Android/ARM64"
     elif [ "$ARCH" == "arm" ]; then
         CPU=armv7-a
         HOST=armv7a-linux-androideabi
@@ -235,8 +235,8 @@ for ARCH in $archs; do
         CROSS_PREFIX=$ANDROID_NDK_TOOLCHAIN/bin/arm-linux-androideabi-
         OPTIMIZE_CFLAGS="-mfloat-abi=softfp -mfpu=vfp -marm -march=$CPU "
 
-        OPENSSL_ROOT_INC="/Users/feishu/Documents/OpenSSL/1_0_2h/include/Android/ARMv7"
-        OPENSSL_ROOT_LIB="/Users/feishu/Documents/OpenSSL/1_0_2h/lib/Android/ARMv7"
+        OPENSSL_ROOT_INC="${CWD}/OpenSSL/1_0_2h/include/Android/ARMv7"
+        OPENSSL_ROOT_LIB="${CWD}/OpenSSL/1_0_2h/lib/Android/ARMv7"
     elif [ "$ARCH" == "x86" ]; then
         CPU=x86
         HOST=i686-linux-android
